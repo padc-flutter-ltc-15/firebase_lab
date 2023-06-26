@@ -42,3 +42,8 @@ await Firebase.initializeApp();
 "Add the following code in application() AppDelegate.swift"
 
 FirebaseApp.configure()
+
+"Need to add permission in plist of xcode"
+
+Privacy - Photo ...
+Privacy - Camera ...

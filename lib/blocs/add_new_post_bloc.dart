@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_lab/data/models/social_model.dart';
 import 'package:firebase_lab/data/models/social_model_impl.dart';
@@ -15,6 +16,11 @@ class AddNewPostBloc extends ChangeNotifier {
   String profilePicture = "";
   NewsFeedVO? mNewsFeed;
 
+  bool isLoading = false;
+
+  /// Image
+  File? chosenImageFile;
+
   /// Model
   final SocialModel _model = SocialModelImpl();
 
@@ -29,8 +35,8 @@ class AddNewPostBloc extends ChangeNotifier {
 
   void _prepopulateDataForAddNewPost() {
     userName = "Zaw Moe Htike";
-    profilePicture =
-    "https://avatars.githubusercontent.com/u/29286198?v=4";
+    profilePicture = "https://avatars.githubusercontent.com/u/29286198?v=4";
+
     _notifySafely();
   }
 
@@ -39,9 +45,23 @@ class AddNewPostBloc extends ChangeNotifier {
       userName = newsFeed.userName ?? "";
       profilePicture = newsFeed.profilePicture ?? "";
       newPostDescription = newsFeed.description ?? "";
+
       mNewsFeed = newsFeed;
+
       _notifySafely();
     });
+  }
+
+  void onImageChosen(File imageFile) {
+    chosenImageFile = imageFile;
+
+    _notifySafely();
+  }
+
+  void onTapDeleteImage() {
+    chosenImageFile = null;
+
+    _notifySafely();
   }
 
   void onNewPostTextChanged(String newPostDescription) {
@@ -54,11 +74,19 @@ class AddNewPostBloc extends ChangeNotifier {
       _notifySafely();
       return Future.error("Error");
     } else {
+      isLoading = true;
+      _notifySafely();
       isAddNewPostError = false;
       if (isInEditMode) {
-        return _editNewsFeedPost();
+        return _updateNewsFeedPost().then((value) {
+          isLoading = false;
+          _notifySafely();
+        });
       } else {
-        return _createNewNewsFeedPost();
+        return _createNewNewsFeedPost().then((value) {
+          isLoading = false;
+          _notifySafely();
+        });
       }
     }
   }
@@ -69,17 +97,18 @@ class AddNewPostBloc extends ChangeNotifier {
     }
   }
 
-  Future<dynamic> _editNewsFeedPost() {
+  Future<dynamic> _updateNewsFeedPost() {
     mNewsFeed?.description = newPostDescription;
+
     if (mNewsFeed != null) {
-      return _model.editPost(mNewsFeed!);
+      return _model.updatePost(mNewsFeed!, chosenImageFile);
     } else {
       return Future.error("Error");
     }
   }
 
   Future<void> _createNewNewsFeedPost() {
-    return _model.addNewPost(newPostDescription);
+    return _model.addNewPost(newPostDescription, chosenImageFile);
   }
 
   @override

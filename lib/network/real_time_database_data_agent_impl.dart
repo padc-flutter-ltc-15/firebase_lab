@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:firebase_lab/data/vos/news_feed_vo.dart';
 import 'package:firebase_lab/network/social_data_agent.dart';
@@ -7,6 +10,7 @@ import '../data/vos/news_feed_vo.dart';
 
 /// Database Paths
 const newsFeedPath = "newsfeed";
+const fileUploadRef = "uploads";
 
 class RealtimeDatabaseDataAgentImpl extends SocialDataAgent {
   static final RealtimeDatabaseDataAgentImpl _singleton =
@@ -56,8 +60,16 @@ class RealtimeDatabaseDataAgentImpl extends SocialDataAgent {
 
   @override
   Future<void> deletePost(int postId) {
-    return databaseRef.child(newsFeedPath)
-        .child(postId.toString()).remove();
+    return databaseRef.child(newsFeedPath).child(postId.toString()).remove();
+  }
+
+  @override
+  Future<String> uploadFileToFirebase(File image) {
+    return FirebaseStorage.instance
+        .ref(fileUploadRef)
+        .child("${DateTime.now().millisecondsSinceEpoch}")
+        .putFile(image)
+        .then((taskSnapshot) => taskSnapshot.ref.getDownloadURL());
   }
 
   @override
