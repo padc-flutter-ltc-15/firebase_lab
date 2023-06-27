@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,9 +8,13 @@ import 'package:firebase_lab/data/vos/news_feed_vo.dart';
 import 'package:firebase_lab/network/social_data_agent.dart';
 
 import '../data/vos/news_feed_vo.dart';
+import '../data/vos/user_vo.dart';
 
 /// Database Paths
 const newsFeedPath = "newsfeed";
+const usersPath = "users";
+
+/// File Upload References
 const fileUploadRef = "uploads";
 
 class RealtimeDatabaseDataAgentImpl extends SocialDataAgent {
@@ -23,7 +28,13 @@ class RealtimeDatabaseDataAgentImpl extends SocialDataAgent {
   RealtimeDatabaseDataAgentImpl._internal();
 
   /// Database
-  var databaseRef = FirebaseDatabase.instance.reference();
+  var databaseRef = FirebaseDatabase.instance.ref();
+
+  /// Storage
+  var firebaseStorage = FirebaseStorage.instance;
+
+  /// Auth
+  FirebaseAuth auth = FirebaseAuth.instance;
 
   @override
   Stream<List<NewsFeedVO>> getNewsFeed() {
@@ -89,4 +100,69 @@ class RealtimeDatabaseDataAgentImpl extends SocialDataAgent {
     });
   }
 
+  @override
+  Future registerNewUser(UserVO newUser) {
+    return auth
+        .createUserWithEmailAndPassword(
+          email: newUser.email ?? "",
+          password: newUser.password ?? "",
+        )
+        /*.then((credential) =>
+        credential.user?..updateDisplayName(newUser.userName))*/
+        .then((userCredential) {
+          userCredential.user?.updateDisplayName(newUser.userName);
+          return userCredential.user;
+        })
+        .then((user) {
+          newUser.id = user?.uid ?? "";
+          _addNewUser(newUser);
+        });
+  }
+
+  @override
+  Future login(String email, String password) {
+    return auth.signInWithEmailAndPassword(email: email, password: password);
+  }
+
+  Future<void> _addNewUser(UserVO newUser) {
+    return databaseRef
+        .child(usersPath)
+        .child(newUser.id.toString())
+        .set(newUser.toJson());
+  }
+
+  @override
+  bool isLoggedIn() {
+    return auth.currentUser != null;
+  }
+
+  @override
+  UserVO getLoggedInUser() {
+    return UserVO(
+      id: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      userName: auth.currentUser?.displayName,
+    );
+  }
+
+  @override
+  Future logOut() {
+    return auth.signOut();
+  }
+
+  @override
+  Future<UserVO> getUserProfileById(String userId) {
+    return databaseRef
+        .child(usersPath)
+        .child(userId)
+        .once()
+        .then((databaseEvent){
+      final dynamic value = databaseEvent.snapshot.value;
+      if(value != null){
+        return UserVO.fromJson(Map<String,dynamic>.from(value));
+      } else {
+        throw Exception('Data not Found');
+      }
+    });
+  }
 }

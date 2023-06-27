@@ -3,10 +3,14 @@ import 'package:firebase_lab/data/models/social_model.dart';
 import 'package:firebase_lab/data/models/social_model_impl.dart';
 import 'package:firebase_lab/data/vos/news_feed_vo.dart';
 
+import '../data/models/authentication_model.dart';
+import '../data/models/authentication_model_impl.dart';
+
 class NewsFeedBloc extends ChangeNotifier {
   List<NewsFeedVO>? newsFeed;
 
   final SocialModel _mSocialModel = SocialModelImpl();
+  final AuthenticationModel _mAuthenticationModel = AuthenticationModelImpl();
 
   bool isDisposed = false;
 
@@ -21,6 +25,10 @@ class NewsFeedBloc extends ChangeNotifier {
 
   void onTapDeletePost(int postId) async {
     await _mSocialModel.deletePost(postId);
+  }
+
+  Future onTapLogout() {
+    return _mAuthenticationModel.logOut();
   }
 
   @override

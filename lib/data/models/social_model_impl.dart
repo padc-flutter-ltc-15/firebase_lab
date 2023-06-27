@@ -6,6 +6,10 @@ import 'package:firebase_lab/network/cloud_firestore_data_agent_impl.dart';
 import 'package:firebase_lab/network/real_time_database_data_agent_impl.dart';
 import 'package:firebase_lab/network/social_data_agent.dart';
 
+import '../vos/user_vo.dart';
+import 'authentication_model.dart';
+import 'authentication_model_impl.dart';
+
 class SocialModelImpl extends SocialModel {
   static final SocialModelImpl _singleton = SocialModelImpl._internal();
 
@@ -15,8 +19,11 @@ class SocialModelImpl extends SocialModel {
 
   SocialModelImpl._internal();
 
-  //SocialDataAgent mDataAgent = RealtimeDatabaseDataAgentImpl();
-  SocialDataAgent mDataAgent = CloudFireStoreDataAgentImpl();
+  SocialDataAgent mDataAgent = RealtimeDatabaseDataAgentImpl();
+  //SocialDataAgent mDataAgent = CloudFireStoreDataAgentImpl();
+
+  /// Other Models
+  final AuthenticationModel _authenticationModel = AuthenticationModelImpl();
 
   @override
   Stream<List<NewsFeedVO>> getNewsFeed() {
@@ -29,27 +36,26 @@ class SocialModelImpl extends SocialModel {
   }
 
   @override
-  Future<void> addNewPost(String description, File? imageFile) {
+  Future<void> addNewPost(String description, File? imageFile, String userProfile) {
     if (imageFile != null) {
       return mDataAgent
           .uploadFileToFirebase(imageFile)
-          .then((downloadUrl) => craftNewsFeedVO(description, downloadUrl))
+          .then((downloadUrl) => craftNewsFeedVO(description, downloadUrl, userProfile))
           .then((newPost) => mDataAgent.addNewPost(newPost));
     } else {
-      return craftNewsFeedVO(description, "")
+      return craftNewsFeedVO(description, "", userProfile)
           .then((newPost) => mDataAgent.addNewPost(newPost));
     }
   }
 
-  Future<NewsFeedVO> craftNewsFeedVO(String description, String imageUrl) {
+  Future<NewsFeedVO> craftNewsFeedVO(String description, String imageUrl, String userProfile) {
     var currentMilliseconds = DateTime.now().millisecondsSinceEpoch;
     var newPost = NewsFeedVO(
       id: currentMilliseconds,
-      userName: "Zaw Moe Htike",
+      userName: _authenticationModel.getLoggedInUser().userName,
       postImage: imageUrl,
       description: description,
-      profilePicture:
-      "https://avatars.githubusercontent.com/u/29286198?v=4",
+      profilePicture: userProfile
     );
     return Future.value(newPost);
   }
@@ -60,7 +66,12 @@ class SocialModelImpl extends SocialModel {
   }
 
   @override
-  Future<void> updatePost(NewsFeedVO newsFeed, File? imageFile) {
+  Future<void> editPost(NewsFeedVO newsFeed, File? imageFile) {
     return mDataAgent.addNewPost(newsFeed);
+  }
+
+  @override
+  Future<UserVO> getUserProfileById(String userId) {
+    return mDataAgent.getUserProfileById(userId);
   }
 }

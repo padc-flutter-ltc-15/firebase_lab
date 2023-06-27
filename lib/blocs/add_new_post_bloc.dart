@@ -4,11 +4,20 @@ import 'package:firebase_lab/data/models/social_model.dart';
 import 'package:firebase_lab/data/models/social_model_impl.dart';
 import 'package:firebase_lab/data/vos/news_feed_vo.dart';
 
+import '../data/models/authentication_model.dart';
+import '../data/models/authentication_model_impl.dart';
+import '../data/vos/user_vo.dart';
+
 class AddNewPostBloc extends ChangeNotifier {
   /// State
   String newPostDescription = "";
   bool isAddNewPostError = false;
   bool isDisposed = false;
+  bool isLoading = false;
+  UserVO? _loggedInUser;
+
+  /// Image
+  File? chosenImageFile;
 
   /// For Edit Mode
   bool isInEditMode = false;
@@ -16,15 +25,12 @@ class AddNewPostBloc extends ChangeNotifier {
   String profilePicture = "";
   NewsFeedVO? mNewsFeed;
 
-  bool isLoading = false;
-
-  /// Image
-  File? chosenImageFile;
-
   /// Model
   final SocialModel _model = SocialModelImpl();
+  final AuthenticationModel _authenticationModel = AuthenticationModelImpl();
 
   AddNewPostBloc({int? newsFeedId}) {
+    _loggedInUser = _authenticationModel.getLoggedInUser();
     if (newsFeedId != null) {
       isInEditMode = true;
       _prepopulateDataForEditMode(newsFeedId);
@@ -34,9 +40,15 @@ class AddNewPostBloc extends ChangeNotifier {
   }
 
   void _prepopulateDataForAddNewPost() {
-    userName = "Zaw Moe Htike";
-    profilePicture = "https://avatars.githubusercontent.com/u/29286198?v=4";
+    userName = _loggedInUser?.userName ?? "";
 
+    String id =_loggedInUser?.id??"";
+
+    _authenticationModel.getUserProfileById(id).then((value){
+      profilePicture = value.userProfile??"";
+      print("Profile Picture==========================>$profilePicture" );
+      _notifySafely();
+    });
     _notifySafely();
   }
 
@@ -101,14 +113,14 @@ class AddNewPostBloc extends ChangeNotifier {
     mNewsFeed?.description = newPostDescription;
 
     if (mNewsFeed != null) {
-      return _model.updatePost(mNewsFeed!, chosenImageFile);
+      return _model.editPost(mNewsFeed!, chosenImageFile);
     } else {
       return Future.error("Error");
     }
   }
 
   Future<void> _createNewNewsFeedPost() {
-    return _model.addNewPost(newPostDescription, chosenImageFile);
+    return _model.addNewPost(newPostDescription, chosenImageFile, profilePicture);
   }
 
   @override

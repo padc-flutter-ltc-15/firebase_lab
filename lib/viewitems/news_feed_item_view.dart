@@ -24,7 +24,7 @@ class NewsFeedItemView extends StatelessWidget {
         Row(
           children: [
             ProfileImageView(
-              profileImage: mNewsFeed?.profilePicture ?? "",
+              profileImage: ((mNewsFeed?.profilePicture ?? "").isEmpty)?"https://www.citypng.com/public/uploads/preview/download-black-male-user-profile-icon-png-116371332534k5baafcll.png":mNewsFeed?.profilePicture??"",
             ),
             const SizedBox(
               width: MARGIN_MEDIUM_2,
@@ -129,7 +129,7 @@ class PostImageView extends StatelessWidget {
         image: NetworkImage(
           postImage,
         ),
-        fit: BoxFit.fill,
+        fit: BoxFit.cover,
       ),
     );
   }
@@ -148,6 +148,7 @@ class MoreButtonView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton(
+      padding: EdgeInsets.zero,
       icon: const Icon(
         Icons.more_vert,
         color: Colors.grey,

@@ -8,6 +8,10 @@ import 'package:firebase_lab/blocs/add_new_post_bloc.dart';
 import 'package:firebase_lab/resources/dimens.dart';
 import 'package:firebase_lab/widgets/profile_image_view.dart';
 
+import '../resources/strings.dart';
+import '../widgets/loading_view.dart';
+import '../widgets/primary_button_view.dart';
+
 class AddNewPostPage extends StatelessWidget {
   final int? newsFeedId;
 
@@ -33,14 +37,7 @@ class AddNewPostPage extends StatelessWidget {
                   margin: const EdgeInsets.only(
                     left: MARGIN_MEDIUM,
                   ),
-                  child: (newsFeedId) != null?const Text(
-                    "Edit Post",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: TEXT_HEADING_1X,
-                      color: Colors.black,
-                    ),
-                  ):const Text(
+                  child: const Text(
                     "Add New Post",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
@@ -77,11 +74,11 @@ class AddNewPostPage extends StatelessWidget {
                       SizedBox(
                         height: MARGIN_MEDIUM_2,
                       ),
-                      PostImageView(),
+                      PostDescriptionErrorView(),
                       SizedBox(
                         height: MARGIN_MEDIUM_2,
                       ),
-                      PostDescriptionErrorView(),
+                      PostImageView(),
                       SizedBox(
                         height: MARGIN_LARGE,
                       ),
@@ -110,32 +107,6 @@ class AddNewPostPage extends StatelessWidget {
   }
 }
 
-class LoadingView extends StatelessWidget {
-  const LoadingView({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.black12,
-      child: const Center(
-        child: SizedBox(
-          width: MARGIN_XXLARGE,
-          height: MARGIN_XXLARGE,
-          child: LoadingIndicator(
-            indicatorType: Indicator.audioEqualizer,
-            colors: [Colors.white],
-            strokeWidth: 2,
-            backgroundColor: Colors.transparent,
-            pathBackgroundColor: Colors.black,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class PostImageView extends StatelessWidget {
   const PostImageView({Key? key}) : super(key: key);
 
@@ -153,29 +124,29 @@ class PostImageView extends StatelessWidget {
             Container(
               child: (bloc.chosenImageFile == null)
                   ? GestureDetector(
-                      child: SizedBox(
-                        height: 300,
-                        child: Image.network(
-                          "https://socialistmodernism.com/wp-content/uploads/2017/07/placeholder-image.png?w=640",
-                        ),
-                      ),
-                      onTap: () async {
-                        final ImagePicker _picker = ImagePicker();
-                        // Pick an image
-                        final XFile? image = await _picker.pickImage(
-                            source: ImageSource.gallery);
-                        if (image != null) {
-                          bloc.onImageChosen(File(image.path));
-                        }
-                      },
-                    )
+                child: SizedBox(
+                  height: 300,
+                  child: Image.network(
+                    "https://socialistmodernism.com/wp-content/uploads/2017/07/placeholder-image.png?w=640",
+                  ),
+                ),
+                onTap: () async {
+                  final ImagePicker _picker = ImagePicker();
+                  // Pick an image
+                  final XFile? image = await _picker.pickImage(
+                      source: ImageSource.gallery);
+                  if (image != null) {
+                    bloc.onImageChosen(File(image.path));
+                  }
+                },
+              )
                   : SizedBox(
-                      height: 300,
-                      child: Image.file(
-                        bloc.chosenImageFile ?? File(""),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
+                height: 300,
+                child: Image.file(
+                  bloc.chosenImageFile ?? File(""),
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
             Align(
               alignment: Alignment.topRight,
@@ -236,25 +207,8 @@ class PostButtonView extends StatelessWidget {
             Navigator.pop(context);
           });
         },
-        child: Container(
-          width: double.infinity,
-          height: MARGIN_XXLARGE,
-          decoration: BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.circular(
-              MARGIN_LARGE,
-            ),
-          ),
-          child: const Center(
-            child: Text(
-              "POST",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: TEXT_REGULAR_2X,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
+        child: const PrimaryButtonView(
+          label: LBL_POST,
         ),
       ),
     );
@@ -272,7 +226,7 @@ class ProfileImageAndNameView extends StatelessWidget {
       builder: (context, bloc, child) => Row(
         children: [
           ProfileImageView(
-            profileImage: bloc.profilePicture ?? "",
+            profileImage: bloc.profilePicture.isEmpty?"https://www.citypng.com/public/uploads/preview/download-black-male-user-profile-icon-png-116371332534k5baafcll.png":bloc.profilePicture,
           ),
           const SizedBox(
             width: MARGIN_MEDIUM_2,
