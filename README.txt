@@ -47,3 +47,30 @@ FirebaseApp.configure()
 
 Privacy - Photo ...
 Privacy - Camera ...
+
+"FCM"
+
+https://fcm.googleapis.com/fcm/send
+
+{
+	"registration_ids": [
+		"replace_with_server_key_from_fcm",
+		"replace_with_server_key_from_fcm"
+	],
+	"notification": {
+		"title": "Noti Title",
+		"body": "Noti Body",
+		"priority": "high",
+		"content_available": true
+	},
+	"data": {
+		"title": "Noti Title",
+		"body": "Noti Body",
+		"priority": "high",
+		"content_available": true
+		"post_id": "..."
+	}
+}
+
+Ref: https://firebase.google.com/docs/cloud-messaging/http-server-ref
+Ref: https://firebase.google.com/docs/cloud-messaging/send-message
