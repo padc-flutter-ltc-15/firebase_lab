@@ -1,3 +1,5 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_lab/pages/text_detection_page.dart';
 import 'package:firebase_lab/utils/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -37,6 +39,21 @@ class NewsFeedPage extends StatelessWidget {
           ),
           actions: [
             GestureDetector(
+              onTap: () {
+                navigateToScreen(context, const TextDetectionPage());
+              },
+              child: Container(
+                margin: const EdgeInsets.only(
+                  right: MARGIN_LARGE,
+                ),
+                child: const Icon(
+                  Icons.face_outlined ,
+                  color: Colors.grey,
+                  size: MARGIN_LARGE,
+                ),
+              ),
+            ),
+            GestureDetector(
               onTap: () {},
               child: Container(
                 margin: const EdgeInsets.only(
@@ -74,6 +91,7 @@ class NewsFeedPage extends StatelessWidget {
           onPressed: () {
             /// Navigate to Add New Post Page
             _navigateToAddNewPostPage(context);
+            FirebaseCrashlytics.instance.crash();
           },
           child: const Icon(
             Icons.add,

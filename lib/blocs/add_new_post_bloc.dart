@@ -4,6 +4,7 @@ import 'package:firebase_lab/data/models/social_model.dart';
 import 'package:firebase_lab/data/models/social_model_impl.dart';
 import 'package:firebase_lab/data/vos/news_feed_vo.dart';
 
+import '../analytics/firebase_analytics_tracker.dart';
 import '../data/models/authentication_model.dart';
 import '../data/models/authentication_model_impl.dart';
 import '../data/vos/user_vo.dart';
@@ -37,6 +38,10 @@ class AddNewPostBloc extends ChangeNotifier {
     } else {
       _prepopulateDataForAddNewPost();
     }
+
+    /// Firebase
+    _sendAnalyticsData(addNewPostScreenReached, null);
+
   }
 
   void _prepopulateDataForAddNewPost() {
@@ -101,6 +106,11 @@ class AddNewPostBloc extends ChangeNotifier {
         });
       }
     }
+  }
+
+  /// Analytics
+  void _sendAnalyticsData(String name, Map<String, String>? parameters) async {
+    await FirebaseAnalyticsTracker().logEvent(name, parameters);
   }
 
   void _notifySafely() {
