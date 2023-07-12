@@ -3,6 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_lab/data/models/social_model.dart';
 import 'package:firebase_lab/data/models/social_model_impl.dart';
 import 'package:firebase_lab/data/vos/news_feed_vo.dart';
+import 'package:firebase_lab/data/vos/user_vo.dart';
+import 'package:firebase_lab/remote_config/firebase_remote_config.dart';
+import 'package:flutter/material.dart';
 
 import '../analytics/firebase_analytics_tracker.dart';
 import '../data/models/authentication_model.dart';
@@ -16,6 +19,7 @@ class AddNewPostBloc extends ChangeNotifier {
   bool isDisposed = false;
   bool isLoading = false;
   UserVO? _loggedInUser;
+  Color themeColor = Colors.black;
 
   /// Image
   File? chosenImageFile;
@@ -30,6 +34,9 @@ class AddNewPostBloc extends ChangeNotifier {
   final SocialModel _model = SocialModelImpl();
   final AuthenticationModel _authenticationModel = AuthenticationModelImpl();
 
+  /// Remote Configs
+  final SocialRemoteConfig _firebaseRemoteConfig = SocialRemoteConfig();
+
   AddNewPostBloc({int? newsFeedId}) {
     _loggedInUser = _authenticationModel.getLoggedInUser();
     if (newsFeedId != null) {
@@ -42,6 +49,17 @@ class AddNewPostBloc extends ChangeNotifier {
     /// Firebase
     _sendAnalyticsData(addNewPostScreenReached, null);
 
+    _getRemoteConfigAndChangeTheme();
+  }
+
+  void _getRemoteConfigAndChangeTheme() {
+    try {
+      themeColor = _firebaseRemoteConfig.getThemeColorFromRemoteConfig();
+    } catch(exception) {
+      themeColor = Colors.black;
+    }
+
+    _notifySafely();
   }
 
   void _prepopulateDataForAddNewPost() {
@@ -98,11 +116,15 @@ class AddNewPostBloc extends ChangeNotifier {
         return _updateNewsFeedPost().then((value) {
           isLoading = false;
           _notifySafely();
+
+          _sendAnalyticsData(editPostAction, {postId: mNewsFeed?.id.toString()??""});
         });
       } else {
         return _createNewNewsFeedPost().then((value) {
           isLoading = false;
           _notifySafely();
+
+          _sendAnalyticsData(addNewPostAction, null);
         });
       }
     }

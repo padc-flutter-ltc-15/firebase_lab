@@ -91,7 +91,7 @@ class NewsFeedPage extends StatelessWidget {
           onPressed: () {
             /// Navigate to Add New Post Page
             _navigateToAddNewPostPage(context);
-            FirebaseCrashlytics.instance.crash();
+            //FirebaseCrashlytics.instance.crash();
           },
           child: const Icon(
             Icons.add,
